@@ -9,6 +9,8 @@ Researchers who want to evaluate their work using different datasets than those 
 
 **This project provides easy-to-use functions implementing the same metrics used by the the most popular competitions of object detection**. Our implementation does not require modifications of your detection model to complicated input formats, avoiding conversions to XML or JSON files. We simplified the input data (ground truth bounding boxes and detected bounding boxes) and gathered in a single project the main metrics used by the academia and challenges. Our implementation was carefully compared against the official implementations and our results are exactly the same.   
 
+This implementation has been extended to allow point-based detection metrics using bounding boxes. This is to use distance criteria among bounding box centroids, instead IoU.
+
 In the topics below you can find an overview of the most popular metrics used in different competitions and works, as well as samples showing how to use our code.
 
 ## Table of contents
@@ -291,9 +293,9 @@ Follow the steps below to start evaluating your detections:
 
 1. [Create the ground truth files](#create-the-ground-truth-files)
 2. [Create your detection files](#create-your-detection-files)
-3. For **Pascal VOC metrics**, run the command: `python pascalvoc.py`  
+3. For **Pascal VOC metrics**, run the command for IoU based metrics: `python pascalvoc.py` or for distance based metrics: `python pascalvocPoint.py`
    If you want to reproduce the example above, run the command: `python pascalvoc.py -t 0.3`
-4. (Optional) [You can use arguments to control the IOU threshold, bounding boxes format, etc.](#optional-arguments)
+4. (Optional) [You can use arguments to control the IOU threshold (or distance threshold), bounding boxes format, etc.](#optional-arguments)
 
 ### Create the ground truth files
 
@@ -341,7 +343,7 @@ Optional arguments:
 |  `-v`,<br>`--version` | check version | `python pascalvoc.py -v` | |  
 | `-gt`,<br>`--gtfolder` | folder that contains the ground truth bounding boxes files | `python pascalvoc.py -gt /home/whatever/my_groundtruths/` | `/Object-Detection-Metrics/groundtruths`|  
 | `-det`,<br>`--detfolder` | folder that contains your detected bounding boxes files | `python pascalvoc.py -det /home/whatever/my_detections/` | `/Object-Detection-Metrics/detections/`|  
-| `-t`,<br>`--threshold` | IOU thershold that tells if a detection is TP or FP | `python pascalvoc.py -t 0.75` | `0.50` |  
+| `-t`,<br>`--threshold` | IOU thershold (or distance threshold) that tells if a detection is TP or FP | `python pascalvoc.py -t 0.75` or `python pascalvocPoint.py -t 15` | `0.50`  (iou)  `30` (dist)|  
 | `-gtformat` | format of the coordinates of the ground truth bounding boxes [**\***](#asterisk) | `python pascalvoc.py -gtformat xyrb` | `xywh` |
 | `-detformat` | format of the coordinates of the detected bounding boxes [**\***](#asterisk) | `python pascalvoc.py -detformat xyrb` | `xywh` | |  
 | `-gtcoords` | reference of the ground truth bounding bounding box coordinates.<br>If the annotated coordinates are relative to the image size (as used in YOLO), set it to `rel`.<br>If the coordinates are absolute values, not depending to the image size, set it to `abs` |  `python pascalvoc.py -gtcoords rel` | `abs` |  
