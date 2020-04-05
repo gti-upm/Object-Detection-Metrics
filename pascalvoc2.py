@@ -338,7 +338,7 @@ detections, problematic_images = evaluator.PlotPrecisionRecallCurve(
     savePath=savePath,
     showGraphic=showPlot)
 
-draw_images = True
+draw_images = False
 if draw_images:
     # Generate colors for drawing bounding boxes.
     hsv_tuples = [(x / (len(allClasses)+1), 1., 1.)  # +1 for the ground truth
@@ -466,7 +466,8 @@ for metricsPerClass in detections:
     total_FP = metricsPerClass['total FP']
     det_scores = metricsPerClass['det scores']
     max_iou = metricsPerClass['max iou']
-    f1_score = [2 * (p * r) / (p + r) for p, r in zip(precision, recall)]  # F1-score = 2 * (precision * recall) / (precision + recall)
+    eps = np.finfo(float).eps
+    f1_score = [2 * (p * r) / (p + r + eps) for p, r in zip(precision, recall)]  # F1-score = 2 * (precision * recall) / (precision + recall)
     best_f1_score = max(f1_score)
     ind_best = np.argmax(f1_score)
     best_precision = precision[ind_best]  # Precision for best f1-score
