@@ -338,105 +338,108 @@ detections, problematic_images = evaluator.PlotPrecisionRecallCurve(
     savePath=savePath,
     showGraphic=showPlot)
 
-# Generate colors for drawing bounding boxes.
-hsv_tuples = [(x / (len(allClasses)+1), 1., 1.)  # +1 for the ground truth
-              for x in range(len(allClasses)+1)]
-colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
-colors = list(
-    map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)),
-        colors))
-np.random.seed(10101)  # Fixed seed for consistent colors across runs.
-np.random.shuffle(colors)  # Shuffle colors to decorrelate adjacent classes.
-np.random.seed(None)  # Reset seed to default.
+draw_images = False
+if draw_images:
+    # Generate colors for drawing bounding boxes.
+    hsv_tuples = [(x / (len(allClasses)+1), 1., 1.)  # +1 for the ground truth
+                  for x in range(len(allClasses)+1)]
+    colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
+    colors = list(
+        map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)),
+            colors))
+    np.random.seed(10101)  # Fixed seed for consistent colors across runs.
+    np.random.shuffle(colors)  # Shuffle colors to decorrelate adjacent classes.
+    np.random.seed(None)  # Reset seed to default.
 
-# Draw gt and det in images with erroneous detections
-os.makedirs(os.path.join(savePath, 'Problematic images'), exist_ok=True)
-for im_path in problematic_images:  # For every problematic image
-    # Recover original path
-    im_path_tf = im_path.replace('__', '/')
-    # Find image
-    dir1 = os.path.dirname(im_path_tf)
-    name1 = os.path.basename(im_path_tf)
+if draw_images:
+    # Draw gt and det in images with erroneous detections
+    os.makedirs(os.path.join(savePath, 'Problematic images'), exist_ok=True)
+    for im_path in problematic_images:  # For every problematic image
+        # Recover original path
+        im_path_tf = im_path.replace('__', '/')
+        # Find image
+        dir1 = os.path.dirname(im_path_tf)
+        name1 = os.path.basename(im_path_tf)
 
-    path_list = []
-    for path_im in Path(dir1).rglob(name1 + '*'):
-        path_list.append(path_im)
+        path_list = []
+        for path_im in Path(dir1).rglob(name1 + '*'):
+            path_list.append(path_im)
 
-    num_im = len(path_list)
-    if num_im == 0:
-        warnings.warn("No image file found!!")
-    elif num_im > 1:
-        warnings.warn("Multiples image files found!!")
-    else:
-        path_im = path_list[0]
+        num_im = len(path_list)
+        if num_im == 0:
+            warnings.warn("No image file found!!")
+        elif num_im > 1:
+            warnings.warn("Multiples image files found!!")
+        else:
+            path_im = path_list[0]
 
-    # Open image
-    try:
-        image = Image.open(path_im)
-    except:
-        print('Open Error! Image can not be loaded!')
-    else:
-        #font = ImageFont.truetype(font='./font/FiraMonoMedium.otf',
-        #                          size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
-        # Apparently absolute path is needed for the font.
-        font = ImageFont.truetype(font='/home/estudiante/code/Object-Detection-Metrics/font/FiraMonoMedium.otf',
-                                  size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
-        thickness = (image.size[0] + image.size[1]) // 300
+        # Open image
+        try:
+            image = Image.open(path_im)
+        except:
+            print('Open Error! Image can not be loaded!')
+        else:
+            #font = ImageFont.truetype(font='./font/FiraMonoMedium.otf',
+            #                          size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
+            # Apparently absolute path is needed for the font.
+            font = ImageFont.truetype(font='/home/estudiante/code/Object-Detection-Metrics/font/FiraMonoMedium.otf',
+                                      size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
+            thickness = (image.size[0] + image.size[1]) // 300
 
-        # Loop through all bounding boxes and separate them into GTs and detections
-        for bb in allBoundingBoxes.getBoundingBoxes():
-            # [imageName, class, confidence, (bb coordinates XYX2Y2)]
-            if im_path == bb.getImageName():
-                box = bb.getAbsoluteBoundingBox(BBFormat.XYX2Y2)
-                box_YXY2X2 = [box[1], box[0], box[3], box[2]]
+            # Loop through all bounding boxes and separate them into GTs and detections
+            for bb in allBoundingBoxes.getBoundingBoxes():
+                # [imageName, class, confidence, (bb coordinates XYX2Y2)]
+                if im_path == bb.getImageName():
+                    box = bb.getAbsoluteBoundingBox(BBFormat.XYX2Y2)
+                    box_YXY2X2 = [box[1], box[0], box[3], box[2]]
 
-                if bb.getBBType() == BBType.GroundTruth:
-                    score = 'gt'
-                    label = '{} {}'.format(bb.getClassId(), score)
-                    color_bb = colors[0]
-                else:
-                    score = bb.getConfidence(),
-                    label = '{} {:.2f}'.format(bb.getClassId(), score[0])
-                    color_bb = colors[1]
+                    if bb.getBBType() == BBType.GroundTruth:
+                        score = 'gt'
+                        label = '{} {}'.format(bb.getClassId(), score)
+                        color_bb = colors[0]
+                    else:
+                        score = bb.getConfidence(),
+                        label = '{} {:.2f}'.format(bb.getClassId(), score[0])
+                        color_bb = colors[1]
 
-                #print(im_path + label)
-                draw = ImageDraw.Draw(image)
-                label_size = draw.textsize(label, font)
+                    #print(im_path + label)
+                    draw = ImageDraw.Draw(image)
+                    label_size = draw.textsize(label, font)
 
-                top, left, bottom, right = box_YXY2X2
-                top = max(0, np.floor(top + 0.5).astype('int32'))
-                left = max(0, np.floor(left + 0.5).astype('int32'))
-                bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
-                right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
-                #print(label, (left, top), (right, bottom))
+                    top, left, bottom, right = box_YXY2X2
+                    top = max(0, np.floor(top + 0.5).astype('int32'))
+                    left = max(0, np.floor(left + 0.5).astype('int32'))
+                    bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
+                    right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
+                    #print(label, (left, top), (right, bottom))
 
-                if top - label_size[1] >= 0:
-                    text_origin = np.array([left, top - label_size[1]])
-                else:
-                    text_origin = np.array([left, top + 1])
+                    if top - label_size[1] >= 0:
+                        text_origin = np.array([left, top - label_size[1]])
+                    else:
+                        text_origin = np.array([left, top + 1])
 
-                # My kingdom for a good redistributable image drawing library.
-                for i in range(thickness):
+                    # My kingdom for a good redistributable image drawing library.
+                    for i in range(thickness):
+                        draw.rectangle(
+                            [left + i, top + i, right - i, bottom - i],
+                            outline=color_bb)
                     draw.rectangle(
-                        [left + i, top + i, right - i, bottom - i],
-                        outline=color_bb)
-                draw.rectangle(
-                    [tuple(text_origin), tuple(text_origin + label_size)],
-                    fill=color_bb)
-                draw.text(text_origin, label, fill=(0, 0, 0), font=font)
-                #image.show()
+                        [tuple(text_origin), tuple(text_origin + label_size)],
+                        fill=color_bb)
+                    draw.text(text_origin, label, fill=(0, 0, 0), font=font)
+                    #image.show()
 
-        del draw
-        result = np.asarray(image)
-        isOutputShow = False
-        if isOutputShow:
-            cv2.namedWindow("result", cv2.WINDOW_NORMAL)
-            cv2.imshow("result", result)
-        dirname1 = os.path.dirname(path_im)
-        basename1 = os.path.basename(path_im)
-        dirname1 = dirname1.replace('/', '__')
-        output_file = os.path.join(savePath, 'Problematic images', dirname1 + '__' + basename1)
-        cv2.imwrite(output_file, result)
+            del draw
+            result = np.asarray(image)
+            isOutputShow = False
+            if isOutputShow:
+                cv2.namedWindow("result", cv2.WINDOW_NORMAL)
+                cv2.imshow("result", result)
+            dirname1 = os.path.dirname(path_im)
+            basename1 = os.path.basename(path_im)
+            dirname1 = dirname1.replace('/', '__')
+            output_file = os.path.join(savePath, 'Problematic images', dirname1 + '__' + basename1)
+            cv2.imwrite(output_file, result)
 
 
 # Save to file images with erroneous detections
@@ -466,9 +469,9 @@ for metricsPerClass in detections:
     f1_score = [2 * (p * r) / (p + r) for p, r in zip(precision, recall)]  # F1-score = 2 * (precision * recall) / (precision + recall)
     best_f1_score = max(f1_score)
     ind_best = np.argmax(f1_score)
-    best_precision = precision[ind_best]
-    best_recall = recall[ind_best]
-    best_det_scores = det_scores[ind_best]
+    best_precision = precision[ind_best]  # Precision for best f1-score
+    best_recall = recall[ind_best]  # Recall for best f1-score
+    best_det_scores = det_scores[ind_best][2]
     mean_det_dist = statistics.mean(min_dist)
     std_det_dist = statistics.stdev(min_dist)
 
@@ -487,8 +490,8 @@ for metricsPerClass in detections:
         f.write('\nPrecision: %s' % prec)
         f.write('\nRecall: %s' % rec)
         f.write('\nBest F1-score: %s' % best_f1_score)
-        f.write('\nBest Precision: %s' % best_precision)
-        f.write('\nBest Recall: %s' % best_recall)
+        f.write('\nPrecision for best f1-score: %s' % best_precision)
+        f.write('\nRecall for best f1-score: %s' % best_recall)
         f.write('\nDetection Threshold: %s' % best_det_scores)
         f.write('\nMean detection distance: %s' % mean_det_dist)
         f.write('\nStandard deviation of detection distance: %s' % std_det_dist)
