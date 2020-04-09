@@ -288,7 +288,8 @@ else:
     if os.path.isdir(detFolder) is False:
         errors.append('folder %s not found' % detFolder)
 if args.savePath is not None:
-    savePath = ValidatePaths(args.savePath, '-sp/--savepath', errors)
+    #savePath = ValidatePaths(args.savePath, '-sp/--savepath', errors)
+    savePath = os.path.abspath(args.savePath)
 else:
     savePath = os.path.join(currentPath, 'results')
 # Validate savePath
